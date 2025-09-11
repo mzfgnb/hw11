@@ -59,7 +59,7 @@ public:
 
             EllipseSegment segment;
             segment.color = generateRandomColor();
-            segment.vertices.setPrimitiveType(sf::TriangleFan);
+            segment.vertices.setPrimitiveType(sf::PrimitiveType::TrianglesFan);
             
             // Центральная точка
             segment.vertices.append(sf::Vertex(center, segment.color));
@@ -81,7 +81,7 @@ public:
             float x = center.x + currentRadiusX * cos(angle);
             float y = center.y + currentRadiusY * sin(angle);
 
-            sf::VertexArray meridian(sf::Lines, 2);
+            sf::VertexArray meridian(sf::PrimitiveType::Lines, 2);
             meridian[0] = sf::Vertex(center, sf::Color::White);
             meridian[1] = sf::Vertex(sf::Vector2f(x, y), sf::Color::White);
             
