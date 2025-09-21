@@ -1,134 +1,249 @@
 #include <SFML/Graphics.hpp>
-#include <cmath>
+#include <iostream>
+#include <map>
+#include <deque>
+#include <algorithm>
+#include <sstream>
 #include <vector>
-#include <cstdlib>
-#include <ctime>
-#include <optional>
 
-const int WINDOW_WIDTH = 800;
-const int WINDOW_HEIGHT = 600;
-const int NUM_MERIDIANS = 36;
-const float PULSE_SPEED = 0.5f;
-constexpr float PI = 3.14159265358979323846f;
+using namespace std;
 
-struct EllipseSegment {
-    sf::VertexArray vertices;
-    sf::Color color;
-};
+// Установка русской кодировки для консоли
+void setRussian() {
+    SetConsoleOutputCP(1251);
+    SetConsoleCP(1251);
+}
 
-class PulsingEllipse {
-private:
-    sf::Vector2f center;
-    float baseRadiusX, baseRadiusY;
-    float pulseFactor;
-    float pulseTime;
-    std::vector<EllipseSegment> segments;
-    std::vector<sf::VertexArray> meridians;
-
-public:
-    PulsingEllipse(sf::Vector2f centerPos, float radiusX, float radiusY)
-        : center(centerPos), baseRadiusX(radiusX), baseRadiusY(radiusY),
-          pulseFactor(1.f), pulseTime(0.f) {}
-
-    sf::Color generateRandomColor() {
-        return sf::Color(
-            rand() % 200 + 55,
-            rand() % 200 + 55,
-            rand() % 200 + 55
-        );
-    }
-
-    void update(float deltaTime) {
-        pulseTime += deltaTime;
-        pulseFactor = 0.5f * std::sin(PULSE_SPEED * pulseTime) + 1.0f;
-    }
-
-    void buildEllipse(int numPoints = 100) {
-        if (numPoints < NUM_MERIDIANS) numPoints = NUM_MERIDIANS;
-        segments.clear();
-        meridians.clear();
-
-        float currentRadiusX = baseRadiusX * pulseFactor;
-        float currentRadiusY = baseRadiusY * pulseFactor;
-
-        // Создаём сегменты (через TriangleFan — один фан на сегмент)
-        for (int i = 0; i < NUM_MERIDIANS; ++i) {
-            float angle1 = 2.f * PI * i / NUM_MERIDIANS;
-            float angle2 = 2.f * PI * (i + 1) / NUM_MERIDIANS;
-
-            EllipseSegment segment;
-            segment.color = generateRandomColor();
-            segment.vertices.setPrimitiveType(sf::PrimitiveType::TriangleFan);
-
-            // центр
-            sf::Vertex vCenter;
-            vCenter.position = center;
-            vCenter.color = segment.color;
-            segment.vertices.append(vCenter);
-
-            int pointsPerSeg = numPoints / NUM_MERIDIANS;
-            for (int j = 0; j <= pointsPerSeg; ++j) {
-                float t = angle1 + (angle2 - angle1) * (float)j / (float)pointsPerSeg;
-                float x = center.x + currentRadiusX * std::cos(t);
-                float y = center.y + currentRadiusY * std::sin(t);
-
-                sf::Vertex v;
-                v.position = { x, y };
-                v.color = segment.color;
-                segment.vertices.append(v);
+// Функция для разделения текста на строки
+vector<string> splitString(const string& text, size_t maxLineLength = 60) {
+    vector<string> lines;
+    stringstream ss(text);
+    string line;
+    
+    while (getline(ss, line)) {
+        if (line.length() > maxLineLength) {
+            size_t pos = 0;
+            while (pos < line.length()) {
+                size_t end = min(pos + maxLineLength, line.length());
+                lines.push_back(line.substr(pos, end - pos));
+                pos = end;
             }
-
-            segments.push_back(std::move(segment));
-        }
-
-        // Меридианы — простые линии (каждая как VertexArray с 2 вершинами)
-        for (int i = 0; i < NUM_MERIDIANS; ++i) {
-            float angle = 2.f * PI * i / NUM_MERIDIANS;
-            float x = center.x + currentRadiusX * std::cos(angle);
-            float y = center.y + currentRadiusY * std::sin(angle);
-
-            sf::VertexArray meridian(sf::PrimitiveType::Lines, 2);
-
-            meridian[0].position = center;
-            meridian[0].color = sf::Color::White;
-
-            meridian[1].position = { x, y };
-            meridian[1].color = sf::Color::White;
-
-            meridians.push_back(std::move(meridian));
+        } else {
+            lines.push_back(line);
         }
     }
+    return lines;
+}
 
-    void draw(sf::RenderWindow& window) {
-        for (auto& seg : segments) window.draw(seg.vertices);
-        for (auto& m : meridians) window.draw(m);
+// === Программа 1: multimap для float ===
+string program1() {
+    stringstream result;
+    result << "=== ПРОГРАММА 1: multimap с float ===\n\n";
+    
+    // 1. Создание и заполнение multimap
+    multimap<float, float> container1;
+    for (int i = 0; i < 10; ++i) {
+        float key = i * 1.1f;
+        float value = i * 2.2f;
+        container1.insert({key, value});
+    }
+    
+    // 2. Просмотр контейнера
+    result << "Исходный контейнер:\n";
+    for (const auto& pair : container1) {
+        result << "Ключ: " << pair.first << " -> Значение: " << pair.second << "\n";
+    }
+    
+    // 3. Изменение контейнера
+    auto it = container1.find(2.2f);
+    if (it != container1.end()) {
+        container1.erase(it);
+    }
+    
+    // 4. Просмотр с итераторами
+    result << "\nПосле изменений:\n";
+    for (auto it = container1.begin(); it != container1.end(); ++it) {
+        result << "Ключ: " << it->first << " -> Значение: " << it->second << "\n";
+    }
+    
+    // 5. Создание второго контейнера
+    multimap<float, float> container2;
+    for (int i = 5; i < 8; ++i) {
+        container2.insert({i * 3.3f, i * 4.4f});
+    }
+    
+    // 6. Изменение первого контейнера
+    auto pos = container1.find(3.3f);
+    if (pos != container1.end()) {
+        int n = 2;
+        auto next = std::next(pos);
+        for (int i = 0; i < n && next != container1.end(); ++i) {
+            next = container1.erase(next);
+        }
+        container1.insert(container2.begin(), container2.end());
+    }
+    
+    // 7. Просмотр результатов
+    result << "\nПервый контейнер после объединения:\n";
+    for (const auto& pair : container1) {
+        result << "Ключ: " << pair.first << " -> Значение: " << pair.second << "\n";
+    }
+    
+    result << "\nВторой контейнер:\n";
+    for (const auto& pair : container2) {
+        result << "Ключ: " << pair.first << " -> Значение: " << pair.second << "\n";
+    }
+    
+    return result.str();
+}
+
+// === Пользовательский тип данных ===
+class MyData {
+public:
+    float x;
+    float y;
+    
+    MyData(float x = 0, float y = 0) : x(x), y(y) {}
+    
+    bool operator<(const MyData& other) const {
+        return (x*x + y*y) < (other.x*other.x + other.y*other.y);
+    }
+    
+    friend ostream& operator<<(ostream& os, const MyData& data) {
+        return os << "(" << data.x << ", " << data.y << ")";
     }
 };
+
+// === Программа 2: multimap для пользовательских типов ===
+string program2() {
+    stringstream result;
+    result << "=== ПРОГРАММА 2: multimap с пользовательскими данными ===\n\n";
+    
+    // 1. Создание и заполнение
+    multimap<float, MyData> container1;
+    for (int i = 0; i < 8; ++i) {
+        float key = i * 1.5f;
+        MyData value(i * 2.0f, i * 3.0f);
+        container1.insert({key, value});
+    }
+    
+    // 2. Просмотр
+    result << "Исходный контейнер:\n";
+    for (const auto& pair : container1) {
+        result << "Ключ: " << pair.first << " -> Значение: " << pair.second << "\n";
+    }
+    
+    return result.str();
+}
+
+// === Программа 3: Алгоритмы STL с deque ===
+string program3() {
+    stringstream result;
+    result << "=== ПРОГРАММА 3: deque с алгоритмами STL ===\n\n";
+    
+    // 1. Создание контейнера
+    deque<int> container1 = {5, 2, 8, 1, 9, 3, 7, 4, 6};
+    
+    // 2. Сортировка по убыванию
+    sort(container1.rbegin(), container1.rend());
+    
+    // 3. Просмотр
+    result << "После сортировки по убыванию:\n";
+    for (const auto& item : container1) {
+        result << item << " ";
+    }
+    result << "\n";
+    
+    // 4. Поиск элемента
+    auto findCondition = [](int value) { return value > 5; };
+    auto found = find_if(container1.begin(), container1.end(), findCondition);
+    
+    if (found != container1.end()) {
+        result << "\nНайден элемент: " << *found << "\n";
+    }
+    
+    // 5. Перемещение в другой контейнер
+    deque<int> container2;
+    copy_if(container1.begin(), container1.end(), back_inserter(container2), findCondition);
+    
+    // 6. Просмотр второго контейнера
+    result << "\nВторой контейнер (элементы > 5):\n";
+    for (const auto& item : container2) {
+        result << item << " ";
+    }
+    
+    return result.str();
+}
 
 int main() {
-    srand((unsigned)time(nullptr));
-
-    sf::VideoMode vm({ WINDOW_WIDTH, WINDOW_HEIGHT });
-    sf::RenderWindow window(vm, "Pulsing Ellipse");
-    window.setFramerateLimit(60);
-
-    PulsingEllipse ellipse({ WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f }, 200.f, 150.f);
-    ellipse.buildEllipse();
-
-    sf::Clock clock;
-    while (window.isOpen()) {
-        // SFML3: pollEvent возвращает std::optional<sf::Event>
-        while (auto event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) window.close();
-        }
-
-        float dt = clock.restart().asSeconds();
-        ellipse.update(dt);
-        ellipse.buildEllipse();
-
-        window.clear(sf::Color::Black);
-        ellipse.draw(window);
-        window.display();
+    setRussian();
+    
+    // Создаем SFML окно
+    sf::RenderWindow window(sf::VideoMode(1200, 800), "STL Programs - Press 1, 2, 3");
+    
+    // Загрузка шрифта
+    sf::Font font;
+    if (!font.loadFromFile("arial.ttf")) {
+        cout << "Шрифт не найден, используется стандартный" << endl;
     }
+    
+    // Текст меню
+    sf::Text menuText;
+    menuText.setFont(font);
+    menuText.setCharacterSize(24);
+    menuText.setFillColor(sf::Color::White);
+    menuText.setPosition(20, 20);
+    menuText.setString("STL PROGRAMS WITH SFML\n\nPress:\n1 - Multimap with float\n2 - Multimap with custom data\n3 - Deque with algorithms\n\nESC - Exit");
+    
+    // Текст для результатов
+    sf::Text resultText;
+    resultText.setFont(font);
+    resultText.setCharacterSize(18);
+    resultText.setFillColor(sf::Color::Green);
+    resultText.setPosition(20, 200);
+    resultText.setString("Press 1, 2 or 3 to run programs");
+    
+    // Основной цикл SFML
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+            
+            if (event.type == sf::Event::KeyPressed) {
+                string result;
+                switch (event.key.code) {
+                    case sf::Keyboard::Num1:
+                        result = program1();
+                        break;
+                    case sf::Keyboard::Num2:
+                        result = program2();
+                        break;
+                    case sf::Keyboard::Num3:
+                        result = program3();
+                        break;
+                    case sf::Keyboard::Escape:
+                        window.close();
+                        break;
+                }
+                
+                // Обновляем текст результатов
+                if (!result.empty()) {
+                    resultText.setString(result);
+                }
+            }
+        }
+        
+        // Отрисовка
+        window.clear(sf::Color::Black);
+        window.draw(menuText);
+        window.draw(resultText);
+        window.display();
+        
+        // Небольшая задержка
+        sf::sleep(sf::milliseconds(16));
+    }
+    
     return 0;
 }
