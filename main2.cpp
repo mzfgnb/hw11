@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
+#include <iterator>
 
 using namespace std;
 
@@ -36,16 +37,12 @@ public:
 class ProgramManager {
 private:
     sf::RenderWindow window;
-    sf::Font font;
     int currentProgram;
     string outputText;
+    sf::Clock keyClock;
 
 public:
-    ProgramManager() : window(sf::VideoMode(1000, 700), "Контейнерные классы и алгоритмы STL"), currentProgram(1) {
-        if (!font.loadFromMemory(NULL, 0)) {
-            // Используем системный шрифт
-        }
-    }
+    ProgramManager() : window(sf::VideoMode(1000, 700), "Контейнерные классы и алгоритмы STL"), currentProgram(1) {}
 
     void run() {
         while (window.isOpen()) {
@@ -135,9 +132,11 @@ public:
         if (floatDeque.size() > 3) {
             auto it = floatDeque.begin();
             advance(it, 3);
-            auto endIt = it;
-            advance(endIt, min(2, static_cast<int>(distance(it, floatDeque.end()))));
-            floatDeque.erase(it, endIt);
+            if (distance(it, floatDeque.end()) >= 2) {
+                auto endIt = it;
+                advance(endIt, 2);
+                floatDeque.erase(it, endIt);
+            }
         }
         
         floatDeque.insert(floatDeque.end(), secondDeque.begin(), secondDeque.end());
@@ -221,7 +220,9 @@ public:
         if (studentDeque.size() > 2) {
             auto it = studentDeque.begin();
             advance(it, 2);
-            studentDeque.erase(it);
+            if (it != studentDeque.end()) {
+                studentDeque.erase(it);
+            }
         }
         
         studentDeque.insert(studentDeque.end(), secondDeque.begin(), secondDeque.end());
@@ -276,7 +277,6 @@ public:
                 for (const auto& num : numbers) {
                     ss << "   " << num;
                 }
-                ss << "\n\nНажмите Пробел для следующего шага";
                 break;
                 
             case 1:
@@ -379,16 +379,15 @@ public:
         
         outputText = ss.str();
         
-        // Обработка нажатия пробела для перехода к следующему шагу
-        static sf::Clock clock;
-        if (clock.getElapsedTime().asMilliseconds() > 200) {
+        // Обработка нажатия пробела
+        if (keyClock.getElapsedTime().asMilliseconds() > 300) {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
                 step = (step + 1) % 12;
-                clock.restart();
+                keyClock.restart();
             }
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
                 step = 0;
-                clock.restart();
+                keyClock.restart();
             }
         }
     }
@@ -396,28 +395,31 @@ public:
     void render() {
         window.clear(sf::Color::White);
         
-        sf::Text text;
-        text.setFont(font);
-        text.setString(outputText);
-        text.setCharacterSize(16);
-        text.setFillColor(sf::Color::Black);
-        text.setPosition(20, 20);
+        // Простой вывод текста без шрифта (через консоль + фигуры)
+        sf::RectangleShape background(sf::Vector2f(980, 680));
+        background.setPosition(10, 10);
+        background.setFillColor(sf::Color(240, 240, 240));
+        background.setOutlineColor(sf::Color::Black);
+        background.setOutlineThickness(2);
         
-        // Добавляем информационную панель
-        sf::Text info;
-        info.setFont(font);
-        info.setString("Управление: 1-Программа1, 2-Программа2, 3-Программа3, ESC-Выход");
-        info.setCharacterSize(14);
-        info.setFillColor(sf::Color::Blue);
-        info.setPosition(20, 650);
+        window.draw(background);
         
-        window.draw(text);
-        window.draw(info);
+        // Выводим информацию о текущей программе
+        sf::Text programInfo;
+        programInfo.setString("Текущая программа: " + to_string(currentProgram));
+        programInfo.setCharacterSize(20);
+        programInfo.setFillColor(sf::Color::Blue);
+        programInfo.setPosition(20, 20);
+        
+        // Для простоты выводим текст в консоль
+        cout << outputText << "\n---\n";
+        
         window.display();
     }
 };
 
 int main() {
+    cout << "Запуск программы. Используйте клавиши 1,2,3 для переключения между программами\n";
     ProgramManager manager;
     manager.run();
     return 0;
