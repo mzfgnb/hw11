@@ -287,7 +287,7 @@ public:
                 }
                 break;
                 
-            case 2:
+            case 2: {
                 ss << "3. Поиск элемента > 70:\n";
                 auto it = find_if(numbers.begin(), numbers.end(),
                     [](float x) { return x > 70.0f; });
@@ -297,6 +297,7 @@ public:
                     ss << "   Элементы > 70 не найдены";
                 }
                 break;
+            }
                 
             case 3:
                 copy_if(numbers.begin(), numbers.end(),
@@ -356,21 +357,19 @@ public:
                 }
                 break;
                 
-            case 10:
-                {
-                    int count = count_if(thirdContainer.begin(), thirdContainer.end(),
-                        [](float x) { return x > 70.0f; });
-                    ss << "11. Элементов > 70 в третьем контейнере: " << count;
-                }
+            case 10: {
+                int count = count_if(thirdContainer.begin(), thirdContainer.end(),
+                    [](float x) { return x > 70.0f; });
+                ss << "11. Элементов > 70 в третьем контейнере: " << count;
                 break;
+            }
                 
-            case 11:
-                {
-                    bool exists = any_of(thirdContainer.begin(), thirdContainer.end(),
-                        [](float x) { return x > 70.0f; });
-                    ss << "12. В третьем контейнере " << (exists ? "есть" : "нет") << " элементов > 70";
-                }
+            case 11: {
+                bool exists = any_of(thirdContainer.begin(), thirdContainer.end(),
+                    [](float x) { return x > 70.0f; });
+                ss << "12. В третьем контейнере " << (exists ? "есть" : "нет") << " элементов > 70";
                 break;
+            }
         }
         
         ss << "\n\nУправление:";
@@ -381,13 +380,16 @@ public:
         outputText = ss.str();
         
         // Обработка нажатия пробела для перехода к следующему шагу
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-            step = (step + 1) % 12;
-            sf::sleep(sf::milliseconds(200)); // Задержка для избежания многократных нажатий
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
-            step = 0;
-            sf::sleep(sf::milliseconds(200));
+        static sf::Clock clock;
+        if (clock.getElapsedTime().asMilliseconds() > 200) {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+                step = (step + 1) % 12;
+                clock.restart();
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
+                step = 0;
+                clock.restart();
+            }
         }
     }
 
