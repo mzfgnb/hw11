@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
-#include <iterator>
 
 using namespace std;
 
@@ -30,7 +29,7 @@ public:
     
     string toString() const {
         return name + " (Возраст: " + to_string(age) + 
-               ", Оценка: " + to_string(averageGrade) + ")";
+               ", Оценка: " + to_string(averageGrade).substr(0, 4) + ")";
     }
 };
 
@@ -40,14 +39,21 @@ private:
     int currentProgram;
     string outputText;
     sf::Clock keyClock;
+    bool needUpdate;
 
 public:
-    ProgramManager() : window(sf::VideoMode(1000, 700), "Контейнерные классы и алгоритмы STL"), currentProgram(1) {}
+    ProgramManager() : window(sf::VideoMode(800, 600), "Контейнерные классы"), 
+                      currentProgram(1), needUpdate(true) {
+        window.setFramerateLimit(30);
+    }
 
     void run() {
         while (window.isOpen()) {
             handleEvents();
-            update();
+            if (needUpdate) {
+                update();
+                needUpdate = false;
+            }
             render();
         }
     }
@@ -59,368 +65,353 @@ public:
                 window.close();
             }
             if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::Num1) currentProgram = 1;
-                if (event.key.code == sf::Keyboard::Num2) currentProgram = 2;
-                if (event.key.code == sf::Keyboard::Num3) currentProgram = 3;
-                if (event.key.code == sf::Keyboard::Escape) window.close();
+                if (event.key.code == sf::Keyboard::Num1) {
+                    currentProgram = 1;
+                    needUpdate = true;
+                }
+                if (event.key.code == sf::Keyboard::Num2) {
+                    currentProgram = 2; 
+                    needUpdate = true;
+                }
+                if (event.key.code == sf::Keyboard::Num3) {
+                    currentProgram = 3;
+                    needUpdate = true;
+                }
+                if (event.key.code == sf::Keyboard::Escape) {
+                    window.close();
+                }
             }
         }
     }
 
     void update() {
-        switch (currentProgram) {
-            case 1: updateProgram1(); break;
-            case 2: updateProgram2(); break;
-            case 3: updateProgram3(); break;
-        }
-    }
-
-    void updateProgram1() {
-        stringstream ss;
-        ss << "ПРОГРАММА 1: Встроенные типы данных (float)\n";
-        ss << "============================================\n\n";
+        system("cls");
+        cout << "==============================================" << endl;
         
-        // 1. Создаем и заполняем multimap
-        ss << "1. Создаем multimap<float, float>:\n";
-        multimap<float, float> multiMap;
-        for (int i = 0; i < 5; ++i) {
-            float key = static_cast<float>(i);
-            float value = static_cast<float>(rand() % 100) / 10.0f;
-            multiMap.insert({key, value});
-            ss << "   Ключ: " << key << " -> Значение: " << value << "\n";
-        }
-        
-        // 2. Создаем и заполняем deque
-        ss << "\n2. Создаем deque<float>:\n";
-        deque<float> floatDeque;
-        for (int i = 0; i < 6; ++i) {
-            float val = static_cast<float>(rand() % 100) / 10.0f;
-            floatDeque.push_back(val);
-            ss << "   " << val;
-        }
-        
-        // 3. Изменяем контейнеры
-        ss << "\n\n3. Изменяем контейнеры:\n";
-        ss << "   - Удаляем элемент с ключом 2 из multimap\n";
-        ss << "   - Заменяем 2-й элемент в deque на 99.9\n";
-        
-        multiMap.erase(2.0f);
-        if (floatDeque.size() > 1) {
-            floatDeque[1] = 99.9f;
-        }
-        
-        // 4. Просматриваем через итераторы
-        ss << "\n4. Multimap через итераторы:\n";
-        for (auto it = multiMap.begin(); it != multiMap.end(); ++it) {
-            ss << "   Ключ: " << it->first << " -> Значение: " << it->second << "\n";
-        }
-        
-        // 5. Создаем второй контейнер
-        ss << "\n5. Создаем второй deque:\n";
-        deque<float> secondDeque;
-        for (int i = 0; i < 3; ++i) {
-            float val = static_cast<float>(rand() % 50) / 10.0f + 50.0f;
-            secondDeque.push_back(val);
-            ss << "   " << val;
-        }
-        
-        // 6. Изменяем первый deque
-        ss << "\n\n6. Изменяем первый deque:\n";
-        ss << "   - Удаляем 2 элемента после 3-го\n";
-        ss << "   - Добавляем элементы из второго deque\n";
-        
-        if (floatDeque.size() > 3) {
-            auto it = floatDeque.begin();
-            advance(it, 3);
-            if (distance(it, floatDeque.end()) >= 2) {
-                auto endIt = it;
-                advance(endIt, 2);
-                floatDeque.erase(it, endIt);
+        if (currentProgram == 1) {
+            cout << "ПРОГРАММА 1: Встроенные типы данных (float)" << endl;
+            cout << "==============================================" << endl;
+            
+            // 1. Создаем multimap
+            multimap<float, float> multiMap;
+            for (int i = 0; i < 5; ++i) {
+                float key = static_cast<float>(i);
+                float value = static_cast<float>(rand() % 100) / 10.0f;
+                multiMap.insert({key, value});
             }
-        }
-        
-        floatDeque.insert(floatDeque.end(), secondDeque.begin(), secondDeque.end());
-        
-        // 7. Просматриваем результаты
-        ss << "\n7. Итоговый multimap:\n";
-        for (const auto& pair : multiMap) {
-            ss << "   Ключ: " << pair.first << " -> Значение: " << pair.second << "\n";
-        }
-        
-        ss << "\nИтоговый deque:\n";
-        for (const auto& val : floatDeque) {
-            ss << "   " << val;
-        }
-        
-        ss << "\n\nВторой deque:\n";
-        for (const auto& val : secondDeque) {
-            ss << "   " << val;
-        }
-        
-        ss << "\n\nНажмите 2 для перехода к Программе 2";
-        ss << "\nНажмите 3 для перехода к Программе 3";
-        
-        outputText = ss.str();
-    }
-
-    void updateProgram2() {
-        stringstream ss;
-        ss << "ПРОГРАММА 2: Пользовательские типы данных (Student)\n";
-        ss << "====================================================\n\n";
-        
-        // 1. Создаем и заполняем multimap
-        ss << "1. Создаем multimap<float, Student>:\n";
-        multimap<float, Student> studentMap;
-        studentMap.insert({85.5f, Student("Иванов", 20, 85.5f)});
-        studentMap.insert({92.3f, Student("Петров", 21, 92.3f)});
-        studentMap.insert({78.9f, Student("Сидоров", 19, 78.9f)});
-        studentMap.insert({85.5f, Student("Кузнецов", 22, 85.5f)});
-        
-        for (const auto& pair : studentMap) {
-            ss << "   Оценка: " << pair.first << " - " << pair.second.toString() << "\n";
-        }
-        
-        // 2. Создаем и заполняем deque
-        ss << "\n2. Создаем deque<Student>:\n";
-        deque<Student> studentDeque;
-        studentDeque.push_back(Student("Смирнов", 20, 88.0f));
-        studentDeque.push_back(Student("Попов", 21, 76.5f));
-        studentDeque.push_back(Student("Волков", 19, 91.2f));
-        studentDeque.push_back(Student("Орлов", 22, 83.7f));
-        
-        for (const auto& student : studentDeque) {
-            ss << "   " << student.toString() << "\n";
-        }
-        
-        // 3. Изменяем контейнеры
-        ss << "\n3. Изменяем контейнеры:\n";
-        ss << "   - Удаляем студентов с оценкой 85.5 из multimap\n";
-        ss << "   - Заменяем 2-го студента в deque\n";
-        
-        studentMap.erase(85.5f);
-        if (studentDeque.size() > 1) {
-            studentDeque[1] = Student("Новиков", 23, 95.0f);
-        }
-        
-        // 4. Создаем второй deque
-        ss << "\n4. Создаем второй deque<Student>:\n";
-        deque<Student> secondDeque;
-        secondDeque.push_back(Student("Федоров", 20, 87.3f));
-        secondDeque.push_back(Student("Никитин", 21, 79.8f));
-        
-        for (const auto& student : secondDeque) {
-            ss << "   " << student.toString() << "\n";
-        }
-        
-        // 5. Изменяем первый deque
-        ss << "\n5. Изменяем первый deque:\n";
-        ss << "   - Удаляем 1 элемент после 2-го\n";
-        ss << "   - Добавляем элементы из второго deque\n";
-        
-        if (studentDeque.size() > 2) {
-            auto it = studentDeque.begin();
-            advance(it, 2);
-            if (it != studentDeque.end()) {
+            
+            cout << "1. Multimap создан и заполнен:" << endl;
+            for (const auto& pair : multiMap) {
+                cout << "   Ключ: " << pair.first << " -> Значение: " << pair.second << endl;
+            }
+            
+            // 2. Создаем deque
+            deque<float> floatDeque;
+            for (int i = 0; i < 6; ++i) {
+                floatDeque.push_back(static_cast<float>(rand() % 100) / 10.0f);
+            }
+            
+            cout << "\n2. Deque создан и заполнен:" << endl;
+            for (const auto& val : floatDeque) {
+                cout << "   " << val;
+            }
+            cout << endl;
+            
+            // 3. Изменяем контейнеры
+            cout << "\n3. Изменяем контейнеры:" << endl;
+            cout << "   - Удаляем элемент с ключом 2 из multimap" << endl;
+            cout << "   - Заменяем 2-й элемент в deque на 99.9" << endl;
+            
+            multiMap.erase(2.0f);
+            if (floatDeque.size() > 1) {
+                floatDeque[1] = 99.9f;
+            }
+            
+            // 4. Просмотр через итераторы
+            cout << "\n4. Multimap через итераторы:" << endl;
+            for (auto it = multiMap.begin(); it != multiMap.end(); ++it) {
+                cout << "   Ключ: " << it->first << " -> Значение: " << it->second << endl;
+            }
+            
+            // 5. Второй контейнер
+            cout << "\n5. Создаем второй deque:" << endl;
+            deque<float> secondDeque;
+            for (int i = 0; i < 3; ++i) {
+                float val = static_cast<float>(rand() % 50) / 10.0f + 50.0f;
+                secondDeque.push_back(val);
+                cout << "   " << val;
+            }
+            cout << endl;
+            
+            // 6. Изменяем первый deque
+            cout << "\n6. Изменяем первый deque:" << endl;
+            cout << "   - Удаляем 2 элемента после 3-го" << endl;
+            cout << "   - Добавляем элементы из второго deque" << endl;
+            
+            if (floatDeque.size() > 3) {
+                auto it = floatDeque.begin();
+                advance(it, 3);
+                if (distance(it, floatDeque.end()) >= 2) {
+                    auto endIt = it;
+                    advance(endIt, 2);
+                    floatDeque.erase(it, endIt);
+                }
+            }
+            
+            floatDeque.insert(floatDeque.end(), secondDeque.begin(), secondDeque.end());
+            
+            // 7. Итоговый просмотр
+            cout << "\n7. Итоговые контейнеры:" << endl;
+            cout << "Multimap:" << endl;
+            for (const auto& pair : multiMap) {
+                cout << "   Ключ: " << pair.first << " -> Значение: " << pair.second << endl;
+            }
+            
+            cout << "Первый deque:" << endl;
+            for (const auto& val : floatDeque) {
+                cout << "   " << val;
+            }
+            cout << endl;
+            
+            cout << "Второй deque:" << endl;
+            for (const auto& val : secondDeque) {
+                cout << "   " << val;
+            }
+            cout << endl;
+            
+        } else if (currentProgram == 2) {
+            cout << "ПРОГРАММА 2: Пользовательские типы данных (Student)" << endl;
+            cout << "==============================================" << endl;
+            
+            // 1. Создаем multimap
+            multimap<float, Student> studentMap;
+            studentMap.insert({85.5f, Student("Иванов", 20, 85.5f)});
+            studentMap.insert({92.3f, Student("Петров", 21, 92.3f)});
+            studentMap.insert({78.9f, Student("Сидоров", 19, 78.9f)});
+            studentMap.insert({85.5f, Student("Кузнецов", 22, 85.5f)});
+            
+            cout << "1. Multimap студентов создан:" << endl;
+            for (const auto& pair : studentMap) {
+                cout << "   Оценка: " << pair.first << " - " << pair.second.toString() << endl;
+            }
+            
+            // 2. Создаем deque
+            deque<Student> studentDeque;
+            studentDeque.push_back(Student("Смирнов", 20, 88.0f));
+            studentDeque.push_back(Student("Попов", 21, 76.5f));
+            studentDeque.push_back(Student("Волков", 19, 91.2f));
+            studentDeque.push_back(Student("Орлов", 22, 83.7f));
+            
+            cout << "\n2. Deque студентов создан:" << endl;
+            for (const auto& student : studentDeque) {
+                cout << "   " << student.toString() << endl;
+            }
+            
+            // 3. Изменяем контейнеры
+            cout << "\n3. Изменяем контейнеры:" << endl;
+            cout << "   - Удаляем студентов с оценкой 85.5" << endl;
+            cout << "   - Заменяем 2-го студента" << endl;
+            
+            studentMap.erase(85.5f);
+            if (studentDeque.size() > 1) {
+                studentDeque[1] = Student("Новиков", 23, 95.0f);
+            }
+            
+            // 4. Второй контейнер
+            cout << "\n4. Создаем второй deque:" << endl;
+            deque<Student> secondDeque;
+            secondDeque.push_back(Student("Федоров", 20, 87.3f));
+            secondDeque.push_back(Student("Никитин", 21, 79.8f));
+            
+            for (const auto& student : secondDeque) {
+                cout << "   " << student.toString() << endl;
+            }
+            
+            // 5. Изменяем первый deque
+            cout << "\n5. Изменяем первый deque:" << endl;
+            cout << "   - Удаляем 1 элемент после 2-го" << endl;
+            cout << "   - Добавляем элементы из второго deque" << endl;
+            
+            if (studentDeque.size() > 2) {
+                auto it = studentDeque.begin();
+                advance(it, 2);
                 studentDeque.erase(it);
             }
-        }
-        
-        studentDeque.insert(studentDeque.end(), secondDeque.begin(), secondDeque.end());
-        
-        // 6. Просматриваем результаты
-        ss << "\n6. Итоговый multimap:\n";
-        for (const auto& pair : studentMap) {
-            ss << "   Оценка: " << pair.first << " - " << pair.second.toString() << "\n";
-        }
-        
-        ss << "\nИтоговый deque:\n";
-        for (const auto& student : studentDeque) {
-            ss << "   " << student.toString() << "\n";
-        }
-        
-        ss << "\nВторой deque:\n";
-        for (const auto& student : secondDeque) {
-            ss << "   " << student.toString() << "\n";
-        }
-        
-        ss << "\n\nНажмите 1 для перехода к Программе 1";
-        ss << "\nНажмите 3 для перехода к Программе 3";
-        
-        outputText = ss.str();
-    }
-
-    void updateProgram3() {
-        static deque<float> numbers;
-        static deque<float> secondContainer;
-        static deque<float> thirdContainer;
-        static int step = 0;
-        
-        stringstream ss;
-        ss << "ПРОГРАММА 3: Алгоритмы STL\n";
-        ss << "===========================\n\n";
-        
-        if (step == 0) {
-            // Инициализация при первом запуске
-            numbers.clear();
-            for (int i = 0; i < 8; ++i) {
-                numbers.push_back(static_cast<float>(rand() % 100));
+            
+            studentDeque.insert(studentDeque.end(), secondDeque.begin(), secondDeque.end());
+            
+            // 6. Итоговый просмотр
+            cout << "\n6. Итоговые контейнеры:" << endl;
+            cout << "Multimap:" << endl;
+            for (const auto& pair : studentMap) {
+                cout << "   Оценка: " << pair.first << " - " << pair.second.toString() << endl;
             }
-            secondContainer.clear();
-            thirdContainer.clear();
-        }
-        
-        ss << "Шаг " << step + 1 << ":\n\n";
-        
-        switch (step) {
-            case 0:
-                ss << "1. Исходный контейнер:\n";
-                for (const auto& num : numbers) {
-                    ss << "   " << num;
-                }
-                break;
-                
-            case 1:
-                sort(numbers.rbegin(), numbers.rend());
-                ss << "2. Отсортировано по убыванию:\n";
-                for (const auto& num : numbers) {
-                    ss << "   " << num;
-                }
-                break;
-                
-            case 2: {
-                ss << "3. Поиск элемента > 70:\n";
-                auto it = find_if(numbers.begin(), numbers.end(),
-                    [](float x) { return x > 70.0f; });
-                if (it != numbers.end()) {
-                    ss << "   Найден: " << *it;
-                } else {
-                    ss << "   Элементы > 70 не найдены";
-                }
-                break;
+            
+            cout << "Первый deque:" << endl;
+            for (const auto& student : studentDeque) {
+                cout << "   " << student.toString() << endl;
             }
-                
-            case 3:
-                copy_if(numbers.begin(), numbers.end(),
-                       back_inserter(secondContainer),
-                       [](float x) { return x > 70.0f; });
-                ss << "4. Перенесены элементы > 70 во второй контейнер:\n";
-                for (const auto& num : secondContainer) {
-                    ss << "   " << num;
-                }
-                break;
-                
-            case 4:
-                ss << "5. Второй контейнер:\n";
-                for (const auto& num : secondContainer) {
-                    ss << "   " << num;
-                }
-                break;
-                
-            case 5:
-                sort(numbers.begin(), numbers.end());
-                ss << "6. Первый контейнер отсортирован по возрастанию:\n";
-                for (const auto& num : numbers) {
-                    ss << "   " << num;
-                }
-                break;
-                
-            case 6:
-                sort(secondContainer.begin(), secondContainer.end());
-                ss << "7. Второй контейнер отсортирован по возрастанию:\n";
-                for (const auto& num : secondContainer) {
-                    ss << "   " << num;
-                }
-                break;
-                
-            case 7:
-                ss << "8. Оба контейнера:\nПервый: ";
-                for (const auto& num : numbers) ss << num << " ";
-                ss << "\nВторой: ";
-                for (const auto& num : secondContainer) ss << num << " ";
-                break;
-                
-            case 8:
-                thirdContainer.clear();
-                merge(numbers.begin(), numbers.end(),
-                     secondContainer.begin(), secondContainer.end(),
-                     back_inserter(thirdContainer));
-                ss << "9. Третий контейнер (слияние):\n";
-                for (const auto& num : thirdContainer) {
-                    ss << "   " << num;
-                }
-                break;
-                
-            case 9:
-                ss << "10. Третий контейнер:\n";
-                for (const auto& num : thirdContainer) {
-                    ss << "   " << num;
-                }
-                break;
-                
-            case 10: {
-                int count = count_if(thirdContainer.begin(), thirdContainer.end(),
-                    [](float x) { return x > 70.0f; });
-                ss << "11. Элементов > 70 в третьем контейнере: " << count;
-                break;
+            
+            cout << "Второй deque:" << endl;
+            for (const auto& student : secondDeque) {
+                cout << "   " << student.toString() << endl;
             }
-                
-            case 11: {
-                bool exists = any_of(thirdContainer.begin(), thirdContainer.end(),
-                    [](float x) { return x > 70.0f; });
-                ss << "12. В третьем контейнере " << (exists ? "есть" : "нет") << " элементов > 70";
-                break;
+            
+        } else if (currentProgram == 3) {
+            cout << "ПРОГРАММА 3: Алгоритмы STL" << endl;
+            cout << "==============================================" << endl;
+            
+            static deque<float> numbers;
+            static deque<float> secondContainer;
+            static deque<float> thirdContainer;
+            static int step = 0;
+            
+            if (step == 0) {
+                numbers.clear();
+                for (int i = 0; i < 8; ++i) {
+                    numbers.push_back(static_cast<float>(rand() % 100));
+                }
             }
-        }
-        
-        ss << "\n\nУправление:";
-        ss << "\nПробел - следующий шаг";
-        ss << "\nR - перезапуск программы";
-        ss << "\n1,2,3 - переключение между программами";
-        
-        outputText = ss.str();
-        
-        // Обработка нажатия пробела
-        if (keyClock.getElapsedTime().asMilliseconds() > 300) {
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+            
+            cout << "Шаг " << step + 1 << ":" << endl << endl;
+            
+            switch (step) {
+                case 0:
+                    cout << "1. Исходный контейнер:" << endl;
+                    for (const auto& num : numbers) cout << "   " << num;
+                    cout << endl;
+                    break;
+                    
+                case 1:
+                    sort(numbers.rbegin(), numbers.rend());
+                    cout << "2. Отсортировано по убыванию:" << endl;
+                    for (const auto& num : numbers) cout << "   " << num;
+                    cout << endl;
+                    break;
+                    
+                case 2: {
+                    auto it = find_if(numbers.begin(), numbers.end(), [](float x) { return x > 70.0f; });
+                    cout << "3. Поиск элемента > 70:" << endl;
+                    if (it != numbers.end()) cout << "   Найден: " << *it << endl;
+                    else cout << "   Элементы > 70 не найдены" << endl;
+                    break;
+                }
+                    
+                case 3:
+                    secondContainer.clear();
+                    copy_if(numbers.begin(), numbers.end(), back_inserter(secondContainer),
+                           [](float x) { return x > 70.0f; });
+                    cout << "4. Перенесены элементы > 70:" << endl;
+                    for (const auto& num : secondContainer) cout << "   " << num;
+                    cout << endl;
+                    break;
+                    
+                case 4:
+                    cout << "5. Второй контейнер:" << endl;
+                    for (const auto& num : secondContainer) cout << "   " << num;
+                    cout << endl;
+                    break;
+                    
+                case 5:
+                    sort(numbers.begin(), numbers.end());
+                    cout << "6. Первый контейнер по возрастанию:" << endl;
+                    for (const auto& num : numbers) cout << "   " << num;
+                    cout << endl;
+                    break;
+                    
+                case 6:
+                    sort(secondContainer.begin(), secondContainer.end());
+                    cout << "7. Второй контейнер по возрастанию:" << endl;
+                    for (const auto& num : secondContainer) cout << "   " << num;
+                    cout << endl;
+                    break;
+                    
+                case 7:
+                    cout << "8. Оба контейнера:" << endl << "Первый: ";
+                    for (const auto& num : numbers) cout << num << " ";
+                    cout << endl << "Второй: ";
+                    for (const auto& num : secondContainer) cout << num << " ";
+                    cout << endl;
+                    break;
+                    
+                case 8:
+                    thirdContainer.clear();
+                    merge(numbers.begin(), numbers.end(), secondContainer.begin(), secondContainer.end(),
+                         back_inserter(thirdContainer));
+                    cout << "9. Третий контейнер (слияние):" << endl;
+                    for (const auto& num : thirdContainer) cout << "   " << num;
+                    cout << endl;
+                    break;
+                    
+                case 9:
+                    cout << "10. Третий контейнер:" << endl;
+                    for (const auto& num : thirdContainer) cout << "   " << num;
+                    cout << endl;
+                    break;
+                    
+                case 10: {
+                    int count = count_if(thirdContainer.begin(), thirdContainer.end(),
+                        [](float x) { return x > 70.0f; });
+                    cout << "11. Элементов > 70: " << count << endl;
+                    break;
+                }
+                    
+                case 11: {
+                    bool exists = any_of(thirdContainer.begin(), thirdContainer.end(),
+                        [](float x) { return x > 70.0f; });
+                    cout << "12. Элементы > 70 " << (exists ? "есть" : "отсутствуют") << endl;
+                    break;
+                }
+            }
+            
+            cout << "\nНажмите ПРОБЕЛ для следующего шага" << endl;
+            cout << "Нажмите R для перезапуска программы 3" << endl;
+            
+            // Обработка шагов
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && keyClock.getElapsedTime().asMilliseconds() > 300) {
                 step = (step + 1) % 12;
                 keyClock.restart();
+                needUpdate = true;
             }
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::R) && keyClock.getElapsedTime().asMilliseconds() > 300) {
                 step = 0;
                 keyClock.restart();
+                needUpdate = true;
             }
         }
+        
+        cout << "==============================================" << endl;
+        cout << "Управление: 1-Программа1, 2-Программа2, 3-Программа3, ESC-Выход" << endl;
     }
 
     void render() {
         window.clear(sf::Color::White);
         
-        // Простой вывод текста без шрифта (через консоль + фигуры)
-        sf::RectangleShape background(sf::Vector2f(980, 680));
-        background.setPosition(10, 10);
-        background.setFillColor(sf::Color(240, 240, 240));
+        // Простая графика - показываем только номер текущей программы
+        sf::RectangleShape background(sf::Vector2f(200, 60));
+        background.setPosition(300, 270);
+        background.setFillColor(sf::Color::Blue);
         background.setOutlineColor(sf::Color::Black);
         background.setOutlineThickness(2);
-        
         window.draw(background);
-        
-        // Выводим информацию о текущей программе
-        sf::Text programInfo;
-        programInfo.setString("Текущая программа: " + to_string(currentProgram));
-        programInfo.setCharacterSize(20);
-        programInfo.setFillColor(sf::Color::Blue);
-        programInfo.setPosition(20, 20);
-        
-        // Для простоты выводим текст в консоль
-        cout << outputText << "\n---\n";
         
         window.display();
     }
 };
 
 int main() {
-    cout << "Запуск программы. Используйте клавиши 1,2,3 для переключения между программами\n";
+    srand(static_cast<unsigned int>(time(nullptr)));
+    
+    cout << "ПРОГРАММА ЗАПУЩЕНА!" << endl;
+    cout << "Управление:" << endl;
+    cout << "1 - Программа 1 (встроенные типы)" << endl;
+    cout << "2 - Программа 2 (пользовательские типы)" << endl;
+    cout << "3 - Программа 3 (алгоритмы STL)" << endl;
+    cout << "ESC - выход" << endl;
+    cout << "==============================================" << endl;
+    
     ProgramManager manager;
     manager.run();
+    
     return 0;
 }
