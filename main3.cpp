@@ -19,18 +19,6 @@
 #include <QTableWidget>
 #include <QLabel>
 
-QT_BEGIN_NAMESPACE
-class QListWidget;
-class QTextEdit;
-class QLineEdit;
-class QPushButton;
-class QTableWidget;
-QT_END_NAMESPACE
-
-namespace Ui {
-class MainWindow;
-}
-
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -77,7 +65,7 @@ private:
     
     // Правая панель - данные и диаграмма
     QTableWidget *dataTable;
-    QCharts::QChartView *chartView;
+    QChartView *chartView;
     QPushButton *buildChartButton;
     QPushButton *updateChartButton;
     QPushButton *addDataButton;
@@ -85,8 +73,8 @@ private:
     QPushButton *saveDataButton;
     
     // Данные диаграммы
-    QCharts::QPieSeries *pieSeries;
-    QCharts::QChart *chart;
+    QPieSeries *pieSeries;
+    QChart *chart;
 };
 
 MainWindow::MainWindow(QWidget *parent)
@@ -104,14 +92,14 @@ MainWindow::MainWindow(QWidget *parent)
     , loadButton(new QPushButton("Загрузить заметки"))
     , clearAllButton(new QPushButton("Очистить все"))
     , dataTable(new QTableWidget())
-    , chartView(new QCharts::QChartView())
+    , chartView(new QChartView())
     , buildChartButton(new QPushButton("Построить диаграмму"))
     , updateChartButton(new QPushButton("Обновить диаграмму"))
     , addDataButton(new QPushButton("Добавить данные"))
     , removeDataButton(new QPushButton("Удалить данные"))
     , saveDataButton(new QPushButton("Сохранить данные"))
-    , pieSeries(new QCharts::QPieSeries())
-    , chart(new QCharts::QChart())
+    , pieSeries(new QPieSeries())
+    , chart(new QChart())
 {
     setupUI();
     setupChart();
@@ -175,7 +163,7 @@ void MainWindow::setupUI()
     QLabel *chartLabel = new QLabel("Круговая диаграмма:");
     rightLayout->addWidget(chartLabel);
     
-    rightLayout->addWidget(QChartView::chartView);
+    rightLayout->addWidget(chartView);
     
     QHBoxLayout *chartButtonsLayout = new QHBoxLayout();
     chartButtonsLayout->addWidget(buildChartButton);
@@ -216,12 +204,12 @@ void MainWindow::setupUI()
 
 void MainWindow::setupChart()
 {
-    char->addSeries(QPieSeries::pieSeries);
+    chart->addSeries(pieSeries);
     chart->setTitle("Круговая диаграмма данных");
-    chart->setAnimationOptions(QCharts::QChart::AllAnimations);
+    chart->setAnimationOptions(QChart::AllAnimations);
     chart->legend()->setVisible(true);
     chart->legend()->setAlignment(Qt::AlignRight);
-    QChartView::chartView->setChart(chart);
+    chartView->setChart(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
 }
 
@@ -331,7 +319,7 @@ void MainWindow::loadDataFromFile()
 
 void MainWindow::buildChart()
 {
-    QPieSeries::pieSeries->clear();
+    pieSeries->clear();
     double total = 0;
     QVector<QPair<QString, double>> data;
     
@@ -360,12 +348,12 @@ void MainWindow::buildChart()
     
     for (int i = 0; i < data.size(); ++i) {
         double percentage = (data[i].second / total) * 100;
-        QCharts::QPieSlice *slice = pieSeries->append(data[i].first + QString(" (%1%)").arg(percentage, 0, 'f', 1), data[i].second);
+        QPieSlice *slice = pieSeries->append(data[i].first + QString(" (%1%)").arg(percentage, 0, 'f', 1), data[i].second);
         slice->setBrush(QColor(colors[i % colors.size()]));
         slice->setLabelVisible(true);
     }
     
-    char->setTitle(QString("Круговая диаграмма (Всего: %1)").arg(total));
+    chart->setTitle(QString("Круговая диаграмма (Всего: %1)").arg(total));
 }
 
 void MainWindow::updateChart()
